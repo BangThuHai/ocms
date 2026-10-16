@@ -1,7 +1,7 @@
 # OCMS — Outpatient Clinic Appointment & Management System
 
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
-[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-Razor%20Pages-512BD4?style=flat&logo=aspnet)](https://learn.microsoft.com/aspnet/core)
+[![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET%20Core-MVC%208.0-512BD4?style=flat&logo=aspnet)](https://learn.microsoft.com/aspnet/core)
 [![EF Core](https://img.shields.io/badge/EF%20Core-8.0%20(Code--First)-blue?style=flat)](https://learn.microsoft.com/ef/core/)
 [![SignalR](https://img.shields.io/badge/SignalR-Real--Time%20Queue-orange?style=flat&logo=signalr)](https://learn.microsoft.com/aspnet/core/signalr)
 [![SQL Server](https://img.shields.io/badge/Database-SQL%20Server%202022-CC292B?style=flat&logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
@@ -17,12 +17,12 @@
 ## 📖 Table of Contents
 1. [Project Overview](#-project-overview)
 2. [Key Architectural Highlights & Killer Features](#-key-architectural-highlights--killer-features)
-3. [Technology Stack](#-technology-stack)
+3. [Technology Stack & Architecture](#-technology-stack--architecture)
 4. [System Architecture & Roles](#-system-architecture--roles)
 5. [Database Schema (17 Entities)](#-database-schema-17-entities)
 6. [Getting Started & Installation](#-getting-started--installation)
 7. [Default Test Accounts](#-default-test-accounts)
-8. [Project Structure](#-project-structure)
+8. [Project Structure (5-Tier Architecture)](#-project-structure-5-tier-architecture)
 9. [Development Team](#-development-team)
 
 ---
@@ -53,15 +53,16 @@ Unlike conventional CRUD booking platforms, OCMS enforces strict healthcare doma
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Architecture
 
-* **Framework:** ASP.NET Core 8.0 (Razor Pages & RESTful Controllers)
-* **Language:** C# 12
-* **ORM:** Entity Framework Core 8.0 (Code-First Migrations)
+* **Framework:** ASP.NET Core 8.0 (MVC — Model-View-Controller & RESTful Controllers)
+* **Architecture Pattern:** 5-Tier Layered Architecture (`BusinessObjects`, `DataAccessObjects`, `Repositories`, `Services`, `OCMSMVC`)
+* **Language:** C# 12 / .NET 8
+* **ORM:** Entity Framework Core 8.0 (Code-First Migrations & Fluent API Mapping)
 * **Database:** Microsoft SQL Server 2022
 * **Real-time Communication:** Microsoft ASP.NET Core SignalR
-* **Security & Auth:** ASP.NET Core Identity (Role-Based Access Control - RBAC) with BCrypt / PBKDF2 hashing
-* **Frontend UI:** Razor Syntax, HTML5, CSS3, Bootstrap 5, FontAwesome 6, Chart.js
+* **Security & Auth:** ASP.NET Core Cookie Authentication / Identity (Role-Based Access Control — RBAC) with BCrypt hashing
+* **Frontend UI:** Razor Views (`.cshtml`), HTML5, CSS3, Bootstrap 5, FontAwesome 6, Chart.js
 * **Hardware Integration (Web Native):** 
   * Barcode/QR Scanning: `html5-qrcode` (Browser Webcam)
   * Slip & Invoice Printing: Native CSS `@media print` + `window.print()`
@@ -90,7 +91,7 @@ OCMS strictly isolates permissions across **4 core user roles**:
 
 ## 🗄️ Database Schema (17 Entities)
 
-The system is backed by a fully normalized (3NF) relational schema designed in Entity Framework Core:
+The system is backed by a fully normalized (3NF) relational schema designed in Entity Framework Core with strict `DeleteBehavior.Restrict` foreign key integrity:
 
 1. **`Users`**: Central credentials, salt, password hashes, and RBAC roles (`Patient`, `Doctor`, `Staff`, `Admin`).
 2. **`Patients`**: Demographic records, emergency contacts, and health insurance card references (1-to-1 with `Users`).
@@ -99,15 +100,15 @@ The system is backed by a fully normalized (3NF) relational schema designed in E
 5. **`Rooms`**: Physical clinic infrastructure (consultation and diagnostic examination rooms).
 6. **`DoctorSchedules`**: Working shift rosters (Morning: 07:30–11:30, Afternoon: 13:00–17:00).
 7. **`TimeSlots`**: Discrete 15-minute consultation slots governed by `Status (Open, Hold, Booked)` and `RowVersion` concurrency tokens.
-8. **`Appointments`**: Core transactional lifecycle (`Pending`, `Confirmed`, `Arrived`, `InConsultation`, `Completed`, `Cancelled`).
-9. **`VitalSigns`**: Pre-clinical triage records captured at check-in (Blood Pressure, Heart Rate, SpO2, Temperature, Weight, Height, BMI).
+8. **`Appointments`**: Core transactional lifecycle (`Pending`, `Confirmed`, `Arrived`, `InConsultation`, `Completed`, `Cancelled`), including `QueueNumber`, `QrCodeToken`, and `CancellationReason`.
+9. **`VitalSigns`**: Pre-clinical triage records captured at check-in (`SystolicBP`, `DiastolicBP`, `Pulse`, `SpO2`, `Temperature (decimal 4,1)`, `Weight (decimal 5,2)`, `Height (decimal 5,2)`).
 10. **`MedicalRecords`**: Finalized clinical consultations, ICD-10 diagnoses, confidential notes, and recall dates.
 11. **`MedicalServices`**: Master catalog of outpatient rapid diagnostic tests and ultrasound/imaging services.
 12. **`ServiceOrders`**: Line items for ordered diagnostic tests preserving historical frozen `UnitPrice` and clinical findings.
-13. **`Medicines`**: Outpatient pharmacy formulary maintaining unit prices and real-time inventory balances (`StockQuantity`).
+13. **`Medicines`**: Outpatient pharmacy formulary maintaining unit prices and real-time inventory balances (`StockQuantity`, `IsAvailable`).
 14. **`PrescriptionDetails`**: Line items per medical record capturing prescribed quantities, frozen prices, and dosage instructions.
 15. **`Payments`**: Financial transactions (`Deposit`, `FinalSettlement`, `Refund`) with statuses (`Pending`, `Success`, `Failed`, `Refunded`).
-16. **`Feedbacks`**: Post-visit patient satisfaction ratings (1–5 stars) and qualitative feedback comments.
+16. **`Feedbacks`**: Post-visit patient satisfaction ratings (1–5 stars) and qualitative feedback comments (1-to-1 with `Appointments`).
 17. **`Notifications`**: Audit logs of automated dispatch reminders and transactional verification codes.
 
 ---
@@ -121,80 +122,113 @@ The system is backed by a fully normalized (3NF) relational schema designed in E
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/OCMS_PRN222_Group6.git
-cd OCMS_PRN222_Group6
+git clone https://github.com/wangfong232/ocms.git
+cd ocms/OCMS
 ```
 
 ### 2. Configure Database Connection String
-Open `src/OCMS.Web/appsettings.json` and adjust the connection string to target your SQL Server instance:
+Open `OCMSMVC/appsettings.json` and verify the connection string targeting your SQL Server instance:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=OCMS_Db;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+    "DefaultConnection": "Server=(local);Database=OCMS_Db;User Id=sa;Password=123;MultipleActiveResultSets=true;TrustServerCertificate=True"
   }
 }
 ```
 
 ### 3. Apply Migrations & Seed Default Data
-Run the following commands in the Package Manager Console or terminal to create the database schema and seed master catalogs:
+Apply EF Core migrations to create the database schema:
+
+**Via Terminal / .NET CLI (from `OCMS` solution directory):**
 ```bash
-dotnet ef database update --project src/OCMS.Infrastructure --startup-project src/OCMS.Web
+dotnet ef database update --project DataAccessObjects --startup-project OCMSMVC
 ```
+
+**Via Visual Studio Package Manager Console (PMC):**
+```powershell
+Update-Database -Project DataAccessObjects -StartupProject OCMSMVC
+```
+
+> [!NOTE]
+> On the first application launch, `DbInitializer.cs` automatically seeds initial master catalogs (Departments, Rooms, Medical Services, Medicines) and test user accounts with pre-hashed BCrypt credentials.
 
 ### 4. Run the Application
 ```bash
-dotnet run --project src/OCMS.Web
+dotnet run --project OCMSMVC
 ```
-Navigate to `https://localhost:5001` or `http://localhost:5000` in your web browser.
+Open your browser and navigate to:
+* `https://localhost:7196` or `http://localhost:5196` (or the URL assigned by your local IIS Express/Kestrel).
 
 ---
 
 ## 🔑 Default Test Accounts
 
-All accounts come pre-configured via database seeding for instant testing:
+All test accounts are pre-seeded via `DbInitializer.cs` for immediate workflow testing:
 
 | Role | Username / Email | Password | Access Scope |
 | :--- | :--- | :--- | :--- |
-| **System Admin** | `admin@ocms.clinic` | `Admin@123` | Clinic settings, user accounts, shift approval, revenue dashboards |
-| **Clinic Staff** | `staff@ocms.clinic` | `Staff@123` | Webcam QR check-in, vital signs triage, counter settlement, pharmacy dispensing |
-| **Doctor** | `doctor.an@ocms.clinic` | `Doctor@123` | Shift scheduling, daily room queue, clinical EMR, test ordering, e-prescriptions |
-| **Patient** | `patient.phong@gmail.com` | `Patient@123` | Online doctor search, slot reservation, e-ticket QR pass, booking history |
+| **System Admin** | `admin@ocms.clinic` | `123456` | Clinic settings, user accounts, shift approval, revenue dashboards |
+| **Clinic Staff** | `staff@ocms.clinic` | `123456` | Webcam QR check-in, vital signs triage, counter settlement, pharmacy dispensing |
+| **Doctor** | `doctor@ocms.clinic` | `123456` | Shift scheduling, daily room queue, clinical EMR, test ordering, e-prescriptions |
+| **Patient** | `patient@ocms.clinic` | `123456` | Online doctor search, slot reservation, e-ticket QR pass, booking history |
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure (5-Tier Architecture)
+
+The solution adheres strictly to the PRN222 standard 5-project separation of concerns:
 
 ```text
-OCMS/
-├── src/
-│   ├── OCMS.Core/                     # Domain Entities, Enums, Interfaces, Value Objects
-│   │   ├── Entities/                  # 17 normalized domain model classes
-│   │   ├── Enums/                     # Status, ShiftType, Role definitions
-│   │   └── Interfaces/                # Core repository & unit of work contracts
-│   │
-│   ├── OCMS.Infrastructure/           # Data Access & External Integrations
-│   │   ├── Data/                      # OcmsDbContext, Fluent API Configurations
-│   │   ├── Migrations/                # EF Core Code-First Migrations
-│   │   ├── Repositories/              # Generic & Entity-specific Repositories
-│   │   └── Services/                  # Background Worker (HoldReleaseWorker)
-│   │
-│   ├── OCMS.Application/              # Application Business Logic & DTOs
-│   │   ├── DTOs/                      # Request / Response data transfer objects
-│   │   ├── Services/                  # BookingService, EmrService, BillingService
-│   │   └── Hubs/                      # QueueHub (SignalR WebSocket implementation)
-│   │
-│   └── OCMS.Web/                      # Presentation Layer (Razor Pages & Controllers)
-│       ├── Pages/                     # Role-partitioned Razor Pages
-│       │   ├── Patient/               # Booking catalog, appointment history
-│       │   ├── Doctor/                # Patient queue, EMR workspace, shift registration
-│       │   ├── Staff/                 # QR check-in, triage entry, counter billing, pharmacy
-│       │   └── Admin/                 # Specialty/Room config, analytics, user management
-│       ├── wwwroot/                   # Static assets, CSS, Chart.js, html5-qrcode
-│       ├── Program.cs                 # DI container, middleware pipeline, SignalR routes
-│       └── appsettings.json           # Connection strings, application config
-│
-├── docs/                              # Project documentation, SRS, architecture diagrams
-└── README.md
+ocms/
+├── .gitignore                         # .NET & Visual Studio exclusion rules
+├── README.md                          # Technical overview & onboarding guide
+└── OCMS/                              # Solution Root Directory
+    ├── OCMS.slnx                      # Visual Studio Solution File
+    │
+    ├── BusinessObjects/               # Domain Entity Models & Enums
+    │   ├── Entities/                  # 17 normalized domain model classes
+    │   │   ├── Appointment.cs         # Core booking lifecycle, QrCodeToken, QueueNumber
+    │   │   ├── Department.cs          # Medical specialties
+    │   │   ├── Doctor.cs              # Clinical credentials, Room & Department mapping
+    │   │   ├── DoctorSchedule.cs      # Working shift rosters (Morning/Afternoon)
+    │   │   ├── Feedback.cs            # Post-visit 1-5 star ratings (1-1 with Appointment)
+    │   │   ├── MedicalRecord.cs       # Clinical consultation, ICD-10 diagnoses & notes
+    │   │   ├── MedicalService.cs      # Master catalog of diagnostic tests & pricing
+    │   │   ├── Medicine.cs            # Pharmacy formulary, unit prices & StockQuantity
+    │   │   ├── Notification.cs        # Transactional notifications & queue alerts
+    │   │   ├── Patient.cs             # Demographic records & health insurance cards
+    │   │   ├── Payment.cs             # Deposits, final counter settlements & refunds
+    │   │   ├── PrescriptionDetail.cs  # Prescriptions, frozen unit prices & dosages
+    │   │   ├── Room.cs                # Clinic consultation & diagnostic rooms
+    │   │   ├── ServiceOrder.cs        # Test orders with locked UnitPrice & findings
+    │   │   ├── TimeSlot.cs            # 15-min consultation slots with RowVersion token
+    │   │   ├── User.cs                # Central credentials, salt, password hash & roles
+    │   │   └── VitalSigns.cs          # Triage vitals (BP, SpO2, Temp, Weight, Height)
+    │   └── BusinessObjects.csproj
+    │
+    ├── DataAccessObjects/             # Data Access Layer & EF Core Database Context
+    │   ├── Migrations/                # EF Core Code-First Migrations (InitialCreate)
+    │   ├── DbInitializer.cs           # Database catalog & account seeder
+    │   ├── OcmsDbContext.cs           # EF Core DbContext, Fluent API & Restrict FKs
+    │   └── DataAccessObjects.csproj
+    │
+    ├── Repositories/                  # Data Abstraction Layer (Repository Pattern)
+    │   ├── Generic & Specific Repos   # Decoupling data access logic from business rules
+    │   └── Repositories.csproj
+    │
+    ├── Services/                      # Application Business Logic Layer
+    │   ├── Business Services          # BookingService, EmrService, SettlementService
+    │   ├── Hubs/                      # LobbyQueueHub (SignalR WebSocket implementation)
+    │   └── Services.csproj
+    │
+    └── OCMSMVC/                       # Presentation Layer (ASP.NET Core MVC)
+        ├── Controllers/               # Role-partitioned Controllers (Home, Booking, Doctor, Reception, Cashier, Admin)
+        ├── Models/                    # ViewModels and UI Transfer Objects
+        ├── Views/                     # Razor Views (_Layout, Shared, Feature Views)
+        ├── wwwroot/                   # Static files (CSS, JS, Bootstrap 5, html5-qrcode)
+        ├── Program.cs                 # DI registration, pipeline config, SignalR hubs
+        ├── appsettings.json           # SQL Server database connection string (sa/123)
+        └── OCMSMVC.csproj
 ```
 
 ---
@@ -205,7 +239,7 @@ OCMS/
 
 | Student ID | Full Name | Project Role | Core Responsibilities |
 | :---: | :--- | :---: | :--- |
-| **HE190966** | **Trần Quang Phong** | **Team Leader / Architect** | Clean Architecture, Concurrency Booking Engine (`RowVersion`), Database Migrations, Project Coordination |
+| **HE190966** | **Trần Quang Phong** | **Team Leader / Architect** | Solution Architecture, Concurrency Booking Engine (`RowVersion`), Database Migrations, Project Coordination |
 | **HE191710** | **Lê Đức Anh** | **Core Developer** | Doctor Shift Rostering, Clinical Care Workspace, EMR ICD-10 Tagging, Paraclinical Test Ordering |
 | **HE191558** | **Nguyễn Hữu Minh Đức** | **Core Developer** | Front-Desk Webcam QR Check-in (`html5-qrcode`), Triage Vital Signs Recording, SignalR Queue Hub (`/LobbyQueue`) |
 | **HE190879** | **Nguyễn Xuân Bằng** | **Core Developer** | Cashier Consolidated Counter Settlement, Receipt Printing (`window.print()`), Pharmacy Dispensing & Stock Deduction |
