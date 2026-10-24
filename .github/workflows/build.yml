@@ -1,0 +1,26 @@
+name: Build & Validate OCMS
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore OCMS/OCMS.slnx
+
+    - name: Build OCMS Solution
+      run: dotnet build OCMS/OCMS.slnx --no-restore --configuration Release
