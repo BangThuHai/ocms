@@ -26,17 +26,10 @@ namespace OCMSMVC
 
 
             //cấu hình sesion 
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/Account/Login";
-                    options.AccessDeniedPath = "/Account/AccessDenied";
-                    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                });
-
+            builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options => 
             { 
-                 options.IdleTimeout = TimeSpan.FromMinutes(30);
+                 options.IdleTimeout = TimeSpan.FromMinutes(60);
                  options.Cookie.HttpOnly = true;    // Đảm bảo cookie session chỉ có thể truy cập thông qua HTTP và không thể truy cập từ JavaScript
                 options.Cookie.IsEssential = true; // Đảm bảo cookie session được gửi ngay cả khi người dùng chưa đăng nhập
             });
