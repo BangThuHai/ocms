@@ -4,41 +4,67 @@ namespace OCMSMVC.Models
 {
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "Please enter your email")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [Required(ErrorMessage = "Vui lòng nhập Email")]
+        [EmailAddress(ErrorMessage = "Định dạng Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Please enter your password")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
     }
-
-    public class  RegisterViewModel
+    public class RegisterViewModel
     {
-        [Required(ErrorMessage ="Please enter your full name")]
-        [MaxLength(100, ErrorMessage = "Full name cannot exceed 100 characters")]
-        [Display(Name = "Full Name")]
+        [Required(ErrorMessage = "Vui lòng nhập họ và tên")]
+        [MaxLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự")]
+        [Display(Name = "Họ và tên")]
         public string FullName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng nhập Email")]
+        [EmailAddress(ErrorMessage = "Định dạng Email không hợp lệ")]
+        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Số điện thoại phải gồm 10 chữ số (bắt đầu bằng 0)")]
+        [Display(Name = "Số điện thoại")]
+        public string PhoneNumber { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
+        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mật khẩu")]
+        public string Password { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
+        [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Xác nhận mật khẩu")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 
-        [Required(ErrorMessage = "Please enter your email")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
+    public class ForgotPasswordViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập địa chỉ email")]
+        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+        [Display(Name = "Địa chỉ Email")]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập địa chỉ email")]
+        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
+        [Display(Name = "Địa chỉ Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please enter your phone number")]
-        [Display(Name = "Phone Number")]
-        [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Phone number must be 10 digits (starting with 0)")]
-        public string PhoneNumber { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng nhập mã xác thực OTP 6 số")]
+        [RegularExpression(@"^[0-9]{6}$", ErrorMessage = "Mã xác thực phải là 6 chữ số")]
+        [Display(Name = "Mã xác thực (OTP)")]
+        public string OtpCode { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Please enter your password")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
+        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = string.Empty;
-    
-        [Required(ErrorMessage = "Please confirm your password")]
-        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        [Display(Name = "Mật khẩu mới")]
+        public string NewPassword { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu mới")]
+        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-        }
+        [Display(Name = "Xác nhận mật khẩu mới")]
+        public string ConfirmNewPassword { get; set; } = string.Empty;
+    }
 }
