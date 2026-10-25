@@ -73,6 +73,16 @@ namespace Services
             return await _userRepository.GetByIdAsync(id);
         }
 
+        public async Task<bool> ResetPasswordAsync(string email, string newPassword){
+            var user = await _userRepository.GetByEmailAsync(email);
+            if(user==null)
+            {
+                return false;
+            }
 
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
     }
 }
