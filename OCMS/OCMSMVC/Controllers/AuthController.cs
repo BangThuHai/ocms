@@ -35,7 +35,7 @@ namespace OCMSMVC.Controllers
             var user = await _userService.AuthenticateAsync(model.Email, model.Password);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Email or password is incorrect.");
+                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
                 return View(model);
             }
 
@@ -74,7 +74,7 @@ namespace OCMSMVC.Controllers
             {
                 await _userService.RegisterPatientAsync(model.FullName, model.Email, model.PhoneNumber, model.Password);
 
-                TempData["SuccessMessage"] = "Registration successful! Please log in.";
+                TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Vui lòng đăng nhập.";
                 return RedirectToAction("Login");
             }
             catch (InvalidOperationException e)
@@ -94,15 +94,101 @@ namespace OCMSMVC.Controllers
 
 
         [HttpGet]
-        public IActionResult AccessDenied(){
+        public IActionResult AccessDenied()
+        {
             return View();
         }
 
-        private IActionResult RedirectToRoleDashboard(string? role = null){
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userService.GetUserbyEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("Email", "Địa chỉ email này chưa được đăng ký trong hệ thống phòng khám.");
+                return View(model);
+            }
+
+            //OTP hardcode 
+            string otp = Random.Shared.Next(100000, 999999).ToString();
+
+            HttpContext.Session.SetString("ResetOtp", otp);
+            HttpContext.Session.SetString("ResetEmail", model.Email.Trim().ToLower());
+            HttpContext.Session.SetString("ResetExpires", DateTime.Now.AddMinutes(10).ToString("o"));
+
+            TempData["DemoOtp"] = otp;
+            TempData["InfoMessage"] = $"Mã xác thực OTP đã được tạo cho email {model.Email}.";
+
+            return RedirectToAction("ResetPassword");
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var email = HttpContext.Session.GetString("ResetEmail");
+            var model = new ResetPasswordViewModel
+            {
+                Email = email ?? string.Empty
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var sessionOtp = HttpContext.Session.GetString("ResetOtp");
+            var sessionEmail = HttpContext.Session.GetString("ResetEmail");
+            var expiresStr = HttpContext.Session.GetString("ResetExpires");
+
+            if(string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(sessionEmail) || string.IsNullOrEmpty(expiresStr)){
+                ModelState.AddModelError(string.Empty, "Phiên đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu mã xác thực mới.");
+                return View(model);
+            }
+
+            if(model.OtpCode.Trim() != sessionOtp || !model.Email.Trim().Equals(sessionEmail, StringComparison.OrdinalIgnoreCase)){
+                ModelState.AddModelError("OtpCode", "Mã xác thực không hợp lệ.");
+                return View(model);
+                }
+
+                bool success = await _userService.ResetPasswordAsync(model.Email, model.NewPassword);
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, "Không tìm thấy người dùng để cập nhật mật khẩu.");
+                return View(model);
+            }
+
+
+            HttpContext.Session.Remove("ResetOtp");
+            HttpContext.Session.Remove("ResetEmail");
+            HttpContext.Session.Remove("ResetExpires");
+
+            TempData["SuccessMessage"] = "Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập với mật khẩu mới.";
+            return RedirectToAction("Login");
+        }
+        private IActionResult RedirectToRoleDashboard(string? role = null)
+        {
             role ??= HttpContext.Session.GetString("Role");
 
             return role switch
-            { 
+            {
                 "Admin" => RedirectToAction("Index", "Home"),
                 "Doctor" => RedirectToAction("Index", "Home"),
                 "Staff" => RedirectToAction("Index", "Home"),

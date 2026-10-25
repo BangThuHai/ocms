@@ -14,5 +14,8 @@ namespace Services
 
         Task<User?> GetUserByIdAsync(int id);
         Task<User?> GetUserbyEmailAsync(string email);
+
+        Task<bool> ResetPasswordAsync(string email, string newPassword);
+
     }
 }
