@@ -2,6 +2,11 @@
 
 <!DOCTYPE html>
 <html lang="en">
+@{
+	var userRole = Context.Session.GetString("Role");
+	var userFullName = Context.Session.GetString("FullName");
+	var userEmail = Context.Session.GetString("Email");
+}
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,16 +31,15 @@
 						<li class="nav-item">
 							<a class="nav-link active" asp-controller="Home" asp-action="Index">Trang chủ</a>
 						</li>
+						@if (userRole is "Staff" or "Admin")
+						{
+							<li class="nav-item"><a class="nav-link" asp-controller="Billing" asp-action="Index">Thu ngân</a></li>
+							<li class="nav-item"><a class="nav-link" asp-controller="Pharmacy" asp-action="Index">Nhà thuốc</a></li>
+						}
 					</ul>
 
 					<!--Session-->
 					<ul class="navbar-nav ms-auto align-items-center">
-						@{
-							var userRole = Context.Session.GetString("Role");
-							var userFullName = Context.Session.GetString("FullName");
-							var userEmail = Context.Session.GetString("Email");
-						}
-
 						@if (!string.IsNullOrEmpty(userRole))
 						{
 							<li class="nav-item dropdown me-2">
