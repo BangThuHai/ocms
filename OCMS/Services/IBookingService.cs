@@ -28,7 +28,7 @@ namespace Services
     {
         Task<List<Department>> GetSpecialtiesAsync();
         Task<List<Doctor>> SearchDoctorAsync(int? departmentId, string? term);
-        Task<Doctor?> GetDoctorWWithDaySlotsAsync(int doctorId, DateTime targetDate);
+        Task<Doctor?> GetDoctorWithDaySlotsAsync(int doctorId, DateTime targetDate);
         Task<HoldSlotResult> HoldTimeSlotAsync(int slotId, string rowVersion, int? patientId);
     }
 }

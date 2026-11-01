@@ -28,7 +28,7 @@ namespace Services
         {
             return await doctorRepository.GetDoctorsAsync(departmentId, term);
         }
-        public async Task<Doctor?> GetDoctorWWithDaySlotsAsync(int doctorId, DateTime targetDate)
+        public async Task<Doctor?> GetDoctorWithDaySlotsAsync(int doctorId, DateTime targetDate)
         {
             return await doctorRepository.GetDoctorWithDetailsAsync(doctorId);
         }
