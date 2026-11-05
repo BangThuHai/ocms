@@ -20,21 +20,24 @@ namespace Repositories
         public async Task<List<TimeSlot>> GetSlotsByDoctorAndDateAsync(int doctorId, DateTime targetDate)
         {
             var dateOnly = targetDate.Date;
-            return await context.TimeSlots.Include(ts => ts.DoctorSchedule.DoctorId == doctorId && ts.DoctorSchedule.WorkDate == dateOnly && ts.DoctorSchedule.Status == "Active").OrderBy(ts => ts.StartTime)
+            return await context.TimeSlots.Include(ts => ts.DoctorSchedule).Where(ts => ts.DoctorSchedule.DoctorId == doctorId && ts.DoctorSchedule.WorkDate == dateOnly && ts.DoctorSchedule.Status == "Active").OrderBy(ts => ts.StartTime)
                 .ToListAsync();
         }
 
         public async Task<TimeSlot?> GetSlotByIdAsync(int slotId)
         {
-            return await context.TimeSlots.Include(ts => ts.DoctorSchedule).ThenInclude(s => s.Doctor).ThenInclude(d => d.User).FirstOrDefaultAsync(ts => ts.Id == slotId);
+            return await context.TimeSlots.Include(ts => ts.DoctorSchedule).ThenInclude(s => s.Room)
+        .Include(ts => ts.DoctorSchedule).ThenInclude(s => s.Doctor).ThenInclude(d => d.User)
+        .Include(ts => ts.DoctorSchedule).ThenInclude(s => s.Doctor).ThenInclude(d => d.Department)
+        .FirstOrDefaultAsync(ts => ts.Id == slotId);
         }
 
-        public async Task<bool> HoldSlotAsync(int slotId, byte[] expectedRowVersion)
+        public async Task<(bool success, string? newRowVersion)> HoldSlotAsync(int slotId, byte[] expectedRowVersion)
         {
             var slot = await context.TimeSlots.FirstOrDefaultAsync(ts => ts.Id == slotId);
             if (slot == null || slot.Status != "Open")
             {
-                return false;
+                return (false, null);
             }
 
             /*
@@ -42,35 +45,35 @@ namespace Repositories
             SET [IsBooked] = @Current_IsBooked, ...
             WHERE [SlotId] = @SlotId AND [RowVersion] = @Original_RowVersion;
              */
-             context.Entry(slot).Property(s => s.RowVersion).OriginalValue = expectedRowVersion;
+            context.Entry(slot).Property(s => s.RowVersion).OriginalValue = expectedRowVersion;
 
 
             slot.Status = "Hold";
             try
             {
                 await context.SaveChangesAsync();
-                return true;
+                return (true, Convert.ToBase64String(slot.RowVersion));
             }
             catch (DbUpdateConcurrencyException)
             {
-                return false;
+                return (false, null);
             }
         }
-        public async Task<bool> ReleaseSlotAsync(int slotId)
+        public async Task<string?> ReleaseSlotAsync(int slotId)
         {
             var slot = await context.TimeSlots.FirstOrDefaultAsync(ts => ts.Id == slotId);
             if (slot == null)
             {
-                return false;
+                return null;
             }
 
             if (slot.Status == "Hold")
             {
                 slot.Status = "Open";
                 await context.SaveChangesAsync();
-                return true;
+                return Convert.ToBase64String(slot.RowVersion);
             }
-            return false;
+            return null;
         }
     }
 }

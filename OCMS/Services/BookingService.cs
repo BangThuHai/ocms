@@ -20,18 +20,22 @@ namespace Services
             this.doctorRepository = doctorRepository;
             this.timeSlotRepository = timeSlotRepository;
         }
+
         public async Task<List<Department>> GetSpecialtiesAsync()
         {
             return await doctorRepository.GetAllDepartmentAsync();
         }
+
         public async Task<List<Doctor>> SearchDoctorAsync(int? departmentId, string? term)
         {
             return await doctorRepository.GetDoctorsAsync(departmentId, term);
         }
+
         public async Task<Doctor?> GetDoctorWithDaySlotsAsync(int doctorId, DateTime targetDate)
         {
             return await doctorRepository.GetDoctorWithDetailsAsync(doctorId);
         }
+
         public async Task<HoldSlotResult> HoldTimeSlotAsync(int slotId, string rowVersion, int? patientId)
         {
             byte[] rowVersionBytes;
@@ -50,7 +54,7 @@ namespace Services
 
             }
 
-            var success = await timeSlotRepository.HoldSlotAsync(slotId, rowVersionBytes);
+            var (success, newRowVersion) = await timeSlotRepository.HoldSlotAsync(slotId, rowVersionBytes);
 
             if (success)
             {
@@ -60,6 +64,7 @@ namespace Services
                     SlotId = slotId,
                     NewStatus = "Hold",
                     ExpiresInSeconds = 600,
+                    NewRowVersion = newRowVersion ?? string.Empty,
                     Message = "Giữ chỗ thành công! Bạn có 10 phút để hoàn tất xác nhận thông tin khám."
                 };
             }
@@ -88,6 +93,11 @@ namespace Services
                 Message = "Rất tiếc! Khung giờ này vừa có bệnh nhân khác giữ trước. Vui lòng chọn khung giờ khác.",
                 AlternativeSlots = alternatives
             };
+        }
+
+        public async Task<string?> ReleaseSlotAsync(int slotId)
+        {
+            return await timeSlotRepository.ReleaseSlotAsync(slotId);
         }
     }
 }

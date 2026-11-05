@@ -11,7 +11,7 @@ namespace Repositories
     {
         Task<List<TimeSlot>> GetSlotsByDoctorAndDateAsync(int doctorId, DateTime targetDate);
         Task<TimeSlot?> GetSlotByIdAsync(int slotId);
-        Task<bool> HoldSlotAsync(int slotId, byte[] expectedRowVersion);
-        Task<bool> ReleaseSlotAsync(int slotId);
+        Task<(bool success, string? newRowVersion)> HoldSlotAsync(int slotId, byte[] expectedRowVersion);
+        Task<string?> ReleaseSlotAsync(int slotId);
     }
 }

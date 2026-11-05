@@ -14,6 +14,7 @@ namespace Services
         public string Message { get; set; } = string.Empty;
         public string NewStatus { get; set; } = string.Empty;
         public int ExpiresInSeconds { get; set; } = 600; // Default to 10 minutes
+        public string NewRowVersion { get; set; } = string.Empty;
         public List<AlternativeSlotDto> AlternativeSlots { get; set; } = new();
     }
 
@@ -30,5 +31,6 @@ namespace Services
         Task<List<Doctor>> SearchDoctorAsync(int? departmentId, string? term);
         Task<Doctor?> GetDoctorWithDaySlotsAsync(int doctorId, DateTime targetDate);
         Task<HoldSlotResult> HoldTimeSlotAsync(int slotId, string rowVersion, int? patientId);
+        Task<string?> ReleaseSlotAsync(int slotId);
     }
 }

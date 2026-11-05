@@ -22,8 +22,7 @@ namespace OCMSMVC.Models
         public string DepartmentName { get; set; } = string.Empty;
         public string RoomNumber { get; set; } = string.Empty;
         public decimal PricePerSlot { get; set; }
-        public double AverageRating { get; set; } = 5.0;
-        public int TotalReviews { get; set; }
+
 
         public ShiftCapacityMetrics MorningCapacity { get; set; } = new ShiftCapacityMetrics();
         public ShiftCapacityMetrics AfternoonCapacity { get; set; } = new ShiftCapacityMetrics();
@@ -40,6 +39,9 @@ namespace OCMSMVC.Models
         public List<SlotGridItem> MorningSlots { get; set; } = new();
         public List<SlotGridItem> AfternoonSlots { get; set; } = new();
         public ShiftCapacityMetrics DayCapacity { get; set; } = new();
+
+        public SlotGridItem? CurrentHeldSlot { get; set; }
+        public int RemainingSeconds { get; set; } = 0;
     }
 
     public class SlotGridItem
@@ -51,7 +53,8 @@ namespace OCMSMVC.Models
         public string RowVersion { get; set; } = string.Empty;
         public bool IsAvailable => Status == "Open";
 
-
+        public bool IsHeldByCurrentUser { get; set; } = false;
+        public bool IsClickable => Status == "Open" || IsHeldByCurrentUser;
     }
 
     public class HoldSlotPostModel
@@ -61,4 +64,24 @@ namespace OCMSMVC.Models
         [Required]
         public string RowVersion { get; set; } = string.Empty;
     }
+
+    public class BookingConfirmViewModel
+    {
+    public int SlotId { get; set; }
+    public int DoctorId { get; set; }
+        public string DoctorName { get; set; } = string.Empty;
+        public string AcademicTitle { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string RoomNumber { get; set; } = string.Empty;
+        public DateTime AppointmentDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public decimal ConsultationFee { get; set; }
+
+        public string PatientName { get; set; } = string.Empty;
+        public string PatientPhone { get; set; } = string.Empty;
+
+        [MaxLength(500, ErrorMessage = "Lý do khám không được vượt quá 500 ký tự.")]
+        public string? Reason { get; set; }
+}
 }
