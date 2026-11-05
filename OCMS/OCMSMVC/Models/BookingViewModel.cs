@@ -67,8 +67,8 @@ namespace OCMSMVC.Models
 
     public class BookingConfirmViewModel
     {
-    public int SlotId { get; set; }
-    public int DoctorId { get; set; }
+        public int SlotId { get; set; }
+        public int DoctorId { get; set; }
         public string DoctorName { get; set; } = string.Empty;
         public string AcademicTitle { get; set; } = string.Empty;
         public string DepartmentName { get; set; } = string.Empty;
@@ -83,5 +83,32 @@ namespace OCMSMVC.Models
 
         [MaxLength(500, ErrorMessage = "Lý do khám không được vượt quá 500 ký tự.")]
         public string? Reason { get; set; }
-}
+    }
+
+    public class ConfirmBookingPostModel
+    {
+        [Required]
+        public int SlotId { get; set; }
+
+        [MaxLength(500)]
+        public string? Reason { get; set; }
+    }
+
+    public class BookingSuccessViewModel
+    {
+        public int AppointmentId { get; set; }
+        public string QrCodeToken { get; set; } = string.Empty;
+        public string DoctorName { get; set; } = string.Empty;
+        public string AcademicTitle { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string RoomNumber { get; set; } = string.Empty;
+        public DateTime AppointmentDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public decimal ConsultationFee { get; set; }
+        public string PatientName { get; set; } = string.Empty;
+        public string PatientPhone { get; set; } = string.Empty;
+        public string? Reason { get; set; }
+        public string Status { get; set; } = "Confirmed";
+    }
 }

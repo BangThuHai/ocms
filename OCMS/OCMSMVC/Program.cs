@@ -28,7 +28,7 @@ namespace OCMSMVC
             builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
             builder.Services.AddScoped<ICapacityEngine, CapacityEngine>();
             builder.Services.AddScoped<IBookingService, BookingService>();
-
+            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
             //cấu hình sesion 
             builder.Services.AddDistributedMemoryCache();

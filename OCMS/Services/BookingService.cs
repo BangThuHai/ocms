@@ -13,12 +13,14 @@ namespace Services
         private readonly IDoctorRepository doctorRepository;
         private readonly ITimeSlotRepository timeSlotRepository;
         private readonly ICapacityEngine capacityEngine;
+        private readonly IAppointmentRepository appointmentRepository;
 
-        public BookingService(ICapacityEngine capacityEngine, IDoctorRepository doctorRepository, ITimeSlotRepository timeSlotRepository)
+        public BookingService(ICapacityEngine capacityEngine, IDoctorRepository doctorRepository, ITimeSlotRepository timeSlotRepository, IAppointmentRepository appointmentRepository)
         {
             this.capacityEngine = capacityEngine;
             this.doctorRepository = doctorRepository;
             this.timeSlotRepository = timeSlotRepository;
+            this.appointmentRepository = appointmentRepository;
         }
 
         public async Task<List<Department>> GetSpecialtiesAsync()
@@ -98,6 +100,27 @@ namespace Services
         public async Task<string?> ReleaseSlotAsync(int slotId)
         {
             return await timeSlotRepository.ReleaseSlotAsync(slotId);
+        }
+
+        public async Task<Appointment> ConfirmBookingAsync(int userId, int slotId, string? reason)
+        {
+            //kierm tra hooac tu tao ho so banh nhan neu chua co
+            var patient = await appointmentRepository.GetPatientByUserIdAsync(userId);
+            if(patient == null)
+            {
+                patient = new Patient
+                {
+                    UserId = userId,
+                    DateOfBirth = new DateTime(2000, 1, 1),
+                    Gender = "Other"
+                };
+            }   
+            return await appointmentRepository.CreateAppointmentAsync(patient.Id, slotId, reason);
+        }
+
+        public async Task<Appointment?> GetAppointmentDetailsAsync(int appointmentId)
+        {
+            return await appointmentRepository.GetAppointmentDetailsAsync(appointmentId);
         }
     }
 }

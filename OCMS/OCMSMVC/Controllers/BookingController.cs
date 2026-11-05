@@ -224,5 +224,70 @@ namespace OCMSMVC.Controllers
             };
             return View(model);
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmBooking(ConfirmBookingPostModel model)
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Bạn chưa đăng nhập. Vui lòng đăng nhập để xác nhận lịch hẹn.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int? heldSlotId = HttpContext.Session.GetInt32("HeldSlotId");
+            if (!heldSlotId.HasValue || heldSlotId.Value != model.SlotId)
+            {
+                TempData["ErrorMessage"] = "Phiên giữ chỗ của bạn đã hết hạn hoặc không hợp lệ. Vui lòng chọn lại.";
+                return RedirectToAction("Search");
+            }
+
+            try
+            {
+                var appointment = await bookingService.ConfirmBookingAsync(userId.Value, model.SlotId, model.Reason);
+                HttpContext.Session.Remove("HeldSlotId");
+                HttpContext.Session.Remove("HeldExpiresAt");
+
+                TempData["SuccessMessage"] = "Đặt lịch khám thành công!";
+                return RedirectToAction("Success", new { appointmentId = appointment.Id });
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi khi xác nhận đặt lịch: " + ex.Message;
+                return RedirectToAction("Confirm");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Success(int appointmentId)
+        {
+            var appt = await bookingService.GetAppointmentDetailsAsync(appointmentId);
+            if (appt == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy thông tin lịch hẹn.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var model = new BookingSuccessViewModel
+            {
+                AppointmentId = appt.Id,
+                QrCodeToken = appt.QrCodeToken ?? $"APP-{appt.Id}",
+                DoctorName = appt.Doctor.User.FullName,
+                AcademicTitle = appt.Doctor.AcademicTitle,
+                DepartmentName = appt.Doctor.Department.Name,
+                RoomNumber = appt.TimeSlot.DoctorSchedule.Room.RoomNumber,
+                AppointmentDate = appt.AppointmentDate,
+                StartTime = appt.TimeSlot.StartTime,
+                EndTime = appt.TimeSlot.EndTime,
+                ConsultationFee = appt.Doctor.PricePerSlot,
+                PatientName = appt.Patient.User.FullName,
+                PatientPhone = appt.Patient.User.PhoneNumber ?? "",
+                Reason = appt.Reason,
+                Status = appt.Status
+            };
+
+            return View(model);
+        }
     }
 }

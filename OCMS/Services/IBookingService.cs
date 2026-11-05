@@ -32,5 +32,7 @@ namespace Services
         Task<Doctor?> GetDoctorWithDaySlotsAsync(int doctorId, DateTime targetDate);
         Task<HoldSlotResult> HoldTimeSlotAsync(int slotId, string rowVersion, int? patientId);
         Task<string?> ReleaseSlotAsync(int slotId);
+        Task<Appointment> ConfirmBookingAsync(int userId, int slotId, string? reason);
+        Task<Appointment?> GetAppointmentDetailsAsync(int appointmentId);
     }
 }
