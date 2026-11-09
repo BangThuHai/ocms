@@ -14,7 +14,7 @@ namespace OCMSMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDbContext<OcmsDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -22,7 +22,8 @@ namespace OCMSMVC
             //Đăng ký Dependencies cho các Repository và Service
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
-
+            builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+            builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 
             //cấu hình sesion 
