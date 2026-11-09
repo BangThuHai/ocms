@@ -17,7 +17,13 @@ namespace DataAccessObjects
         {
             AdoptEnsureCreatedDatabase(context);
             context.Database.Migrate();
-            if (context.Users.Any()) return;
+            if (context.Users.Any())
+            {
+                EnsureDemoVnpayAppointment(context);
+                EnsureDemoVnpayAppointment(context, "[DEMO] VNPAY second payment request sample");
+                EnsureDemoVnpayAppointment(context, "[DEMO] VNPAY IPN callback verification 2026-11-09");
+                return;
+            }
             // 1. Seed Khoa (Departments)
             var deptNoi = new Department { Code = "INT", Name = "Khoa Nội Tổng Quát", Description = "Khám bệnh nội khoa tổng quát", BaseConsultationFee = 150000 };
             var deptNhi = new Department { Code = "PED", Name = "Khoa Nhi", Description = "Khám và điều trị bệnh nhi khoa", BaseConsultationFee = 150000 };
@@ -57,6 +63,86 @@ namespace DataAccessObjects
                 new MedicalService { DepartmentId = deptNoi.Id, Name = "Siêu âm ổ bụng tổng quát", Price = 180000, IsActive = true },
                 new MedicalService { DepartmentId = deptTMH.Id, Name = "Nội soi Tai Mũi Họng", Price = 200000, IsActive = true }
             );
+            context.SaveChanges();
+            EnsureDemoVnpayAppointment(context);
+            EnsureDemoVnpayAppointment(context, "[DEMO] VNPAY second payment request sample");
+            EnsureDemoVnpayAppointment(context, "[DEMO] VNPAY IPN callback verification 2026-11-09");
+        }
+
+        private static void EnsureDemoVnpayAppointment(
+            OcmsDbContext context,
+            string demoReason = "[DEMO] VNPAY deposit page sample appointment")
+        {
+            if (context.Appointments.Any(a => a.Reason == demoReason)) return;
+
+            var patient = context.Patients
+                .Include(p => p.User)
+                .SingleOrDefault(p => p.User.Email == "patient@ocms.clinic");
+            var doctor = context.Doctors
+                .Include(d => d.User)
+                .SingleOrDefault(d => d.User.Email == "doctor@ocms.clinic");
+
+            if (patient == null || doctor == null) return;
+
+            var roomId = doctor.DefaultRoomId ?? context.Rooms
+                .Where(r => r.DepartmentId == doctor.DepartmentId)
+                .Select(r => (int?)r.Id)
+                .FirstOrDefault();
+            if (roomId == null) return;
+
+            var workDate = DateTime.Today.AddDays(7);
+            var schedule = context.DoctorSchedules.SingleOrDefault(s =>
+                s.DoctorId == doctor.Id &&
+                s.WorkDate >= workDate &&
+                s.WorkDate < workDate.AddDays(1) &&
+                s.Status == "Active");
+
+            if (schedule == null)
+            {
+                schedule = new DoctorSchedule
+                {
+                    DoctorId = doctor.Id,
+                    RoomId = roomId.Value,
+                    WorkDate = workDate,
+                    ShiftType = "Morning",
+                    MaxQuota = 16,
+                    Status = "Active"
+                };
+                context.DoctorSchedules.Add(schedule);
+                context.SaveChanges();
+            }
+
+            var startTime = new TimeSpan(7, 30, 0);
+            var shiftEnd = new TimeSpan(11, 30, 0);
+            while (startTime < shiftEnd && context.TimeSlots.Any(s =>
+                       s.ScheduleId == schedule.Id && s.StartTime == startTime))
+            {
+                startTime = startTime.Add(TimeSpan.FromMinutes(15));
+            }
+
+            if (startTime >= shiftEnd) return;
+
+            var timeSlot = new TimeSlot
+            {
+                ScheduleId = schedule.Id,
+                StartTime = startTime,
+                EndTime = startTime.Add(TimeSpan.FromMinutes(15)),
+                Status = "Hold"
+            };
+            context.TimeSlots.Add(timeSlot);
+            context.SaveChanges();
+
+            context.Appointments.Add(new Appointment
+            {
+                PatientId = patient.Id,
+                DoctorId = doctor.Id,
+                TimeSlotId = timeSlot.Id,
+                AppointmentDate = schedule.WorkDate.Date.Add(timeSlot.StartTime),
+                ConsultationFee = doctor.PricePerSlot,
+                Status = "Pending",
+                Reason = demoReason,
+                CreatedAt = DateTime.UtcNow
+            });
             context.SaveChanges();
         }
 
