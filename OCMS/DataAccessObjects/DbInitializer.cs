@@ -1,10 +1,12 @@
 ﻿using BCrypt.Net;
 using BusinessObjects.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
 
 
 namespace DataAccessObjects
@@ -13,7 +15,8 @@ namespace DataAccessObjects
     {
         public static void Initialize(OcmsDbContext context)
         {
-            context.Database.EnsureCreated();
+            AdoptEnsureCreatedDatabase(context);
+            context.Database.Migrate();
             if (context.Users.Any()) return;
             // 1. Seed Khoa (Departments)
             var deptNoi = new Department { Code = "INT", Name = "Khoa Nội Tổng Quát", Description = "Khám bệnh nội khoa tổng quát", BaseConsultationFee = 150000 };
@@ -55,6 +58,36 @@ namespace DataAccessObjects
                 new MedicalService { DepartmentId = deptTMH.Id, Name = "Nội soi Tai Mũi Họng", Price = 200000, IsActive = true }
             );
             context.SaveChanges();
+        }
+
+        private static void AdoptEnsureCreatedDatabase(OcmsDbContext context)
+        {
+            if (!context.Database.CanConnect()) return;
+            var connection = context.Database.GetDbConnection();
+            var openedHere = connection.State != ConnectionState.Open;
+            if (openedHere) connection.Open();
+
+            bool hasLegacySchema;
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT CASE WHEN OBJECT_ID(N'dbo.__EFMigrationsHistory', N'U') IS NULL AND OBJECT_ID(N'dbo.Users', N'U') IS NOT NULL AND OBJECT_ID(N'dbo.Appointments', N'U') IS NOT NULL THEN 1 ELSE 0 END";
+                hasLegacySchema = Convert.ToInt32(command.ExecuteScalar()) == 1;
+            }
+
+            if (openedHere) connection.Close();
+            if (!hasLegacySchema) return;
+
+            // Older builds used EnsureCreated, which creates the initial schema without migration history.
+            // Mark that exact baseline so Migrate can apply additive migrations without recreating tables.
+            context.Database.ExecuteSqlRaw("""
+                CREATE TABLE [dbo].[__EFMigrationsHistory] (
+                    [MigrationId] nvarchar(150) NOT NULL,
+                    [ProductVersion] nvarchar(32) NOT NULL,
+                    CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+                );
+                INSERT INTO [dbo].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+                VALUES (N'20261016203146_InitialCreate', N'8.0.10');
+                """);
         }
 
         }

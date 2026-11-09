@@ -24,8 +24,10 @@ namespace BusinessObjects.Entities
         public string PaymentType { get; set; } = "Deposit"; // Deposit, FinalSettlement, Refund
         [MaxLength(100)]
         public string? TransactionId { get; set; } // Mã VNPAY hoặc Mã phiếu thu
+        public int? CashierId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         // Navigation Properties
         public Appointment Appointment { get; set; } = null!;
+        public User? Cashier { get; set; }
     }
 }
