@@ -47,7 +47,11 @@
 							<li class="nav-item"><a class="nav-link" asp-controller="Billing" asp-action="Index">Thu ngân</a></li>
 							<li class="nav-item"><a class="nav-link" asp-controller="Pharmacy" asp-action="Index">Nhà thuốc</a></li>
 						}
-</ul>
+		@if (userRole == "Admin")
+		{
+			<li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">Quản trị</a></li>
+		}
+					</ul>
 
 					<!--Session-->
 					<ul class="navbar-nav ms-auto align-items-center">
