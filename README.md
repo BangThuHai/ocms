@@ -168,6 +168,14 @@ dotnet run --project OCMSMVC
 Open your browser and navigate to:
 * `https://localhost:7196` or `http://localhost:5196`
 
+### Staff billing, pharmacy, and VNPAY deposit
+
+* Staff/Admin can use **Billing** to settle completed appointments by Cash or POS, print receipts, and use **Pharmacy** to dispense paid prescriptions with an atomic stock deduction.
+* Patients can start a VNPAY deposit at `POST /Payment/Deposit` with an `appointmentId` after a booking flow has created a pending appointment and held its time slot.
+* Configure `Vnpay:TmnCode`, `Vnpay:HashSecret`, `Vnpay:IpnUrl`, and `Vnpay:PublicBaseUrl` using user secrets or environment variables (`Vnpay__TmnCode`, `Vnpay__HashSecret`, etc.). Do not commit merchant secrets. Configure the VNPAY Sandbox IPN URL to point to the publicly reachable `/Payment/Ipn` endpoint; the callback validates HMACSHA512 before reconciling payments.
+* Optional SMTP delivery uses `Smtp:Host`, `Smtp:Port`, `Smtp:From`, `Smtp:Username`, and `Smtp:Password`. A successful deposit creates an appointment QR token and e-ticket page; the email links to that page.
+* EF Core migrations are applied at startup. Existing databases created by the previous `EnsureCreated` initializer are adopted as the initial migration baseline before applying additive migrations.
+
 ---
 
 ## 🔑 Default Test Accounts

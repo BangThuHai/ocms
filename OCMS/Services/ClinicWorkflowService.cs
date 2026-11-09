@@ -30,4 +30,21 @@ public sealed class ClinicWorkflowService : IClinicWorkflowService
     public Task DispenseAppointmentAsync(int appointmentId, int staffId, CancellationToken cancellationToken = default) =>
         _repository.DispenseAppointmentAsync(appointmentId, staffId, cancellationToken);
 
+    public Task<Payment> CreatePendingDepositAsync(int appointmentId, int patientUserId, CancellationToken cancellationToken = default) =>
+        _repository.CreatePendingDepositAsync(appointmentId, patientUserId, cancellationToken);
+
+    public Task<string> ProcessVnpayCallbackAsync(int paymentId, long amountInCents, string? gatewayTransactionId, bool succeeded, CancellationToken cancellationToken = default) =>
+        _repository.ProcessVnpayCallbackAsync(paymentId, amountInCents, gatewayTransactionId, succeeded, cancellationToken);
+
+    public Task<Payment?> GetPaymentStatusAsync(int paymentId, int patientUserId, CancellationToken cancellationToken = default) =>
+        _repository.GetPaymentStatusAsync(paymentId, patientUserId, cancellationToken);
+
+    public Task<Payment?> GetSuccessfulDepositForTicketAsync(int paymentId, CancellationToken cancellationToken = default) =>
+        _repository.GetSuccessfulDepositForTicketAsync(paymentId, cancellationToken);
+
+    public Task<Appointment?> GetAppointmentByTicketTokenAsync(string token, CancellationToken cancellationToken = default) =>
+        _repository.GetAppointmentByTicketTokenAsync(token, cancellationToken);
+
+    public Task<IReadOnlyList<Appointment>> GetPatientAppointmentsAwaitingDepositAsync(int patientUserId, CancellationToken cancellationToken = default) =>
+        _repository.GetPatientAppointmentsAwaitingDepositAsync(patientUserId, cancellationToken);
 }

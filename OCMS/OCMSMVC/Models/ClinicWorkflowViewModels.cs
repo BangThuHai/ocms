@@ -30,3 +30,22 @@ public sealed class SettlementRequestViewModel
     [RegularExpression("^(Cash|POS)$", ErrorMessage = "Chọn Cash hoặc POS.")]
     public string PaymentMethod { get; init; } = "Cash";
 }
+
+public sealed class VnPayReturnViewModel
+{
+    public bool SignatureValid { get; init; }
+    public Payment? Payment { get; init; }
+    public string? Message { get; init; }
+}
+
+public sealed class ETicketViewModel
+{
+    public required BusinessObjects.Entities.Appointment Appointment { get; init; }
+}
+
+public sealed class PatientDepositAppointmentViewModel
+{
+    public required Appointment Appointment { get; init; }
+    public decimal Amount { get; init; }
+    public bool HasPendingDeposit { get; init; }
+}

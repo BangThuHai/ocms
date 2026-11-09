@@ -31,12 +31,23 @@
 						<li class="nav-item">
 							<a class="nav-link active" asp-controller="Home" asp-action="Index">Trang chủ</a>
 						</li>
+						@if (userRole == "Patient")
+						{
+							<li class="nav-item">
+								<a class="nav-link"
+									asp-controller="Payment"
+									asp-action="Index">
+									 Đặt cọc lịch khám
+								</a>
+							</li>
+						}
+
 						@if (userRole is "Staff" or "Admin")
 						{
 							<li class="nav-item"><a class="nav-link" asp-controller="Billing" asp-action="Index">Thu ngân</a></li>
 							<li class="nav-item"><a class="nav-link" asp-controller="Pharmacy" asp-action="Index">Nhà thuốc</a></li>
 						}
-					</ul>
+</ul>
 
 					<!--Session-->
 					<ul class="navbar-nav ms-auto align-items-center">

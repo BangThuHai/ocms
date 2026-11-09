@@ -1,0 +1,50 @@
+@model OCMSMVC.Models.VnPayReturnViewModel
+@{
+    ViewData["Title"] = "Kết quả thanh toán";
+}
+
+<div class="row justify-content-center py-5"><div class="col-lg-7">
+    <div class="card border-0 shadow-sm"><div class="card-body text-center p-5">
+        @if (!Model.SignatureValid)
+        {
+            <i class="bi bi-shield-exclamation text-danger display-4"></i><h1 class="h3 mt-3">Không xác thực được kết quả</h1>
+        }
+        else if (Model.Payment?.PaymentStatus == "Success")
+        {
+            <i class="bi bi-check-circle-fill text-success display-4"></i><h1 class="h3 mt-3">Đặt cọc thành công</h1>
+            <p class="text-muted">Lịch hẹn #@Model.Payment.AppointmentId đã được xác nhận.</p>
+        }
+        else if (Model.Payment?.PaymentStatus == "Failed")
+        {
+            <i class="bi bi-x-circle-fill text-danger display-4"></i><h1 class="h3 mt-3">Giao dịch chưa thành công</h1>
+            <p class="text-muted">Lịch hẹn đã được giải phóng theo kết quả thanh toán.</p>
+        }
+        else
+        {
+            <i class="bi bi-hourglass-split text-warning display-4"></i><h1 class="h3 mt-3">Đang xác nhận giao dịch</h1>
+            <p class="text-muted">@Model.Message IPN từ VNPAY là nguồn xác nhận trạng thái cuối cùng.</p>
+        }
+        @if (Model.Payment != null) { <p class="mb-1">Mã giao dịch OCMS: <strong>#@Model.Payment.Id</strong></p><p>Số tiền: <strong>@Model.Payment.Amount.ToString("N0") ₫</strong></p> }
+        @if (Model.Payment?.PaymentStatus == "Success" && !string.IsNullOrWhiteSpace(Model.Payment.Appointment.QrCodeToken))
+        {
+            <div class="border rounded p-3 mt-4 d-inline-block">
+                <div id="ticketQr" class="mb-2"></div>
+                <div class="small text-muted">Mã vé check-in</div>
+                <code id="ticketToken">@Model.Payment.Appointment.QrCodeToken</code>
+            </div>
+        }
+        <a class="btn btn-primary mt-3" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+    </div></div>
+</div></div>
+
+@section Scripts {
+    @if (Model.Payment?.PaymentStatus == "Success" && !string.IsNullOrWhiteSpace(Model.Payment.Appointment.QrCodeToken))
+    {
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+        <script>
+            QRCode.toCanvas(document.createElement('canvas'), document.getElementById('ticketToken').textContent.trim(), { width: 180 }, function (error, canvas) {
+                if (!error) document.getElementById('ticketQr').appendChild(canvas);
+            });
+        </script>
+    }
+}
