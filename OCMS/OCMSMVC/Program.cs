@@ -22,6 +22,8 @@ namespace OCMSMVC
             //Đăng ký Dependencies cho các Repository và Service
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IClinicWorkflowRepository, ClinicWorkflowRepository>();
+            builder.Services.AddScoped<IClinicWorkflowService, ClinicWorkflowService>();
 
 
 
