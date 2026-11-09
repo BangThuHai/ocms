@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
 using Services;
+using OCMSMVC.Workers;
 
 namespace OCMSMVC
 {
@@ -24,7 +25,11 @@ namespace OCMSMVC
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IDepartmentService, DepartmentService>();
             builder.Services.AddScoped<IDoctorService, DoctorService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
+            // Đăng ký các dịch vụ Worker
+            builder.Services.AddHostedService<SlotExpiryWorker>();
+            builder.Services.AddHostedService<DailyReminderWorker>();
 
             //cấu hình sesion 
             builder.Services.AddDistributedMemoryCache();
