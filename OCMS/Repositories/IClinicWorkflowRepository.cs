@@ -8,4 +8,7 @@ public interface IClinicWorkflowRepository
     Task<Appointment?> GetBillingAppointmentAsync(int appointmentId, CancellationToken cancellationToken = default);
     Task<Payment> SettleAppointmentAsync(int appointmentId, string paymentMethod, int cashierId, CancellationToken cancellationToken = default);
     Task<Payment?> GetReceiptAsync(int paymentId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Appointment>> GetPharmacyQueueAsync(CancellationToken cancellationToken = default);
+    Task<Appointment?> GetPharmacyAppointmentAsync(int appointmentId, CancellationToken cancellationToken = default);
 }
