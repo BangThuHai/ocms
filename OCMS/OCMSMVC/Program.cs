@@ -31,6 +31,14 @@ namespace OCMSMVC
             builder.Services.AddHostedService<SlotExpiryWorker>();
             builder.Services.AddHostedService<DailyReminderWorker>();
 
+            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+            builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
+            builder.Services.AddScoped<ICapacityEngine, CapacityEngine>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
+
             //cấu hình sesion 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options => 
