@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
 using Services;
+using OCMSMVC.Workers;
 
 namespace OCMSMVC
 {
@@ -14,7 +15,7 @@ namespace OCMSMVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDbContext<OcmsDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -22,13 +23,18 @@ namespace OCMSMVC
             //Đăng ký Dependencies cho các Repository và Service
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+            builder.Services.AddScoped<IDoctorService, DoctorService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
+            // Đăng ký các dịch vụ Worker
+            builder.Services.AddHostedService<SlotExpiryWorker>();
+            builder.Services.AddHostedService<DailyReminderWorker>();
 
             builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
             builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
             builder.Services.AddScoped<ICapacityEngine, CapacityEngine>();
             builder.Services.AddScoped<IBookingService, BookingService>();
-            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 

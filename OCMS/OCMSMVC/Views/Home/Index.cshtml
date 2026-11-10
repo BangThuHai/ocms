@@ -1,8 +1,90 @@
-﻿@{
+﻿@model OCMSMVC.Models.HomeViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section & Booking Search Bar -->
+<section class="bg-light py-5 mb-5 border-bottom">
+    <div class="container text-center py-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">Book Your Medical Appointment</h1>
+        <p class="lead text-muted mb-5">Skip the queue. Find your doctor and book a 15-minute slot instantly.</p>
+
+        <div class="card shadow-sm mx-auto" style="max-width: 800px;">
+            <div class="card-body p-4">
+                <form method="get" asp-controller="Booking" asp-action="DoctorDirectory" class="row g-3 align-items-center">
+
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-stethoscope text-primary"></i></span>
+                            <select name="specialtyId" class="form-select" required>
+                                <option value="" selected disabled>Select Specialty...</option>
+                                @if (Model.Specialties != null && Model.Specialties.Any())
+                                {
+                                    foreach (var dept in Model.Specialties)
+                                    {
+                                        <option value="@dept.Id">@dept.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa-regular fa-calendar text-primary"></i></span>
+                            <input type="date" name="targetDate" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Doctors Section -->
+<section id="featured-doctors" class="container py-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">Our Top Specialists</h2>
+        <p class="text-muted">Highly rated professionals ready to care for your health.</p>
+    </div>
+
+    <div class="row g-4">
+        @if (Model.FeaturedDoctors != null && Model.FeaturedDoctors.Any())
+        {
+            foreach (var doc in Model.FeaturedDoctors)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0 text-center pt-4">
+                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(doc.User?.FullName ?? "Dr")&background=0D8ABC&color=fff&size=128"
+                             class="rounded-circle mx-auto mb-3" alt="@doc.User?.FullName" width="120" height="120" style="object-fit: cover;">
+
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-1">@doc.AcademicTitle @doc.User?.FullName</h5>
+                            <p class="text-primary mb-2"><i class="fa-solid fa-briefcase-medical me-1"></i> @doc.Department?.Name</p>
+                            <p class="text-muted small fw-bold">Fee: @doc.PricePerSlot.ToString("N0") VNĐ / Slot</p>
+                        </div>
+
+                        <div class="card-footer bg-white border-0 pb-4">
+                            <a asp-controller="Booking" asp-action="DoctorDirectory" asp-route-doctorId="@doc.Id" class="btn btn-outline-primary w-100">
+                                Book Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted">
+                <p>No featured doctors found at the moment.</p>
+            </div>
+        }
+    </div>
+</section>
