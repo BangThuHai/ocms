@@ -31,8 +31,6 @@ namespace OCMSMVC
             builder.Services.AddScoped<IClinicWorkflowService, ClinicWorkflowService>();
             builder.Services.AddScoped<IAdminManagementRepository, AdminManagementRepository>();
             builder.Services.AddScoped<IAdminManagementService, AdminManagementService>();
-            builder.Services.AddSingleton<IVnPayGatewayService, VnPayGatewayService>();
-            builder.Services.AddTransient<IEticketEmailSender, SmtpEticketEmailSender>();
 
             // Đăng ký các dịch vụ Worker
             builder.Services.AddHostedService<SlotExpiryWorker>();

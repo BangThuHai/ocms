@@ -31,12 +31,6 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index" asp-fragment="featured-doctors">Our Doctors</a>
                         </li>
-                        @if (userRole == "Patient")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Payment" asp-action="Index">Đặt cọc lịch khám</a>
-                            </li>
-                        }
                         @if (userRole is "Staff" or "Admin")
                         {
                             <li class="nav-item"><a class="nav-link" asp-controller="Billing" asp-action="Index">Thu ngân</a></li>

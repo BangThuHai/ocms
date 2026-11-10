@@ -30,7 +30,7 @@
                 <tr><td>Phí khám</td><td class="text-end">@consultation.ToString("N0") ₫</td></tr>
                 @foreach (var service in services) { <tr><td>@service.MedicalService.Name</td><td class="text-end">@service.UnitPrice.ToString("N0") ₫</td></tr> }
                 @foreach (var medicine in medicines) { <tr><td>@medicine.Medicine.Name × @medicine.Quantity</td><td class="text-end">@((medicine.UnitPrice * medicine.Quantity).ToString("N0")) ₫</td></tr> }
-                <tr class="text-success"><td>Đã đặt cọc online</td><td class="text-end">− @deposits.ToString("N0") ₫</td></tr>
+                <tr class="text-success"><td>Đã thanh toán trước</td><td class="text-end">− @deposits.ToString("N0") ₫</td></tr>
             </tbody>
             <tfoot><tr class="fs-5 fw-bold"><td>Đã thu (@(Model.PaymentMethod == "POS" ? "POS" : "Tiền mặt"))</td><td class="text-end">@Model.Amount.ToString("N0") ₫</td></tr></tfoot>
         </table>
