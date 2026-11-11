@@ -36,20 +36,13 @@ namespace OCMSMVC
                     options.ExpireTimeSpan = TimeSpan.FromHours(8);
                 });
 
-            builder.Services.AddSession(options => 
-            { 
-                 options.IdleTimeout = TimeSpan.FromMinutes(30);
-                 options.Cookie.HttpOnly = true;    // Đảm bảo cookie session chỉ có thể truy cập thông qua HTTP và không thể truy cập từ JavaScript
-                options.Cookie.IsEssential = true; // Đảm bảo cookie session được gửi ngay cả khi người dùng chưa đăng nhập
-
-            // 4. Cấu hình Session
+            // 4. Cấu hình Session & Cache
             builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession(options => 
-            { 
-                 options.IdleTimeout = TimeSpan.FromMinutes(60);
-                 options.Cookie.HttpOnly = true;
-                 options.Cookie.IsEssential = true;
-
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(60);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
 
             var app = builder.Build();

@@ -6,14 +6,19 @@
 
 <div class="container-fluid py-3">
     <!-- Tiêu đề màn hình TV -->
-    <div class="bg-primary text-white p-4 rounded-4 shadow-sm mb-4 d-flex justify-content-between align-items-center">
+    <div class="bg-primary text-white p-4 rounded-4 shadow-sm mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h2 class="fw-bold mb-1"><i class="bi bi-tv me-2"></i>BẢNG GỌI SỐ KHÁM BỆNH - SẢNH CHỜ</h2>
             <small class="opacity-75">Hệ thống Outpatient Clinic Management System (OCMS)</small>
         </div>
-        <div class="text-end">
-            <h3 id="clock" class="fw-bold text-warning font-monospace mb-0">--:--:--</h3>
-            <small id="currentDate" class="text-white-50">Hôm nay</small>
+        <div class="d-flex align-items-center gap-3">
+            <button type="button" id="btnEnableSound" class="btn btn-warning btn-sm fw-bold" onclick="enableSound()">
+                <i class="bi bi-volume-up-fill me-1"></i>Bật Âm Thanh Chuông
+            </button>
+            <div class="text-end">
+                <h3 id="clock" class="fw-bold text-warning font-monospace mb-0">--:--:--</h3>
+                <small id="currentDate" class="text-white-50">Hôm nay</small>
+            </div>
         </div>
     </div>
 
@@ -107,7 +112,7 @@
 
 <!-- Âm thanh chuông thông báo đơn giản (HTML5 Audio) -->
 <audio id="chimeSound" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/cartoon/pop.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
 </audio>
 
 @section Scripts {
@@ -121,8 +126,21 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    // Bật âm thanh theo tương tác người dùng (tránh trình duyệt chặn autoplay)
+    function enableSound() {
+        const audio = document.getElementById('chimeSound');
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            const btn = document.getElementById('btnEnableSound');
+            btn.className = 'btn btn-success btn-sm fw-bold';
+            btn.innerHTML = '<i class="bi bi-volume-up-fill me-1"></i>Đã Bật Âm Thanh';
+        }).catch(() => {});
+    }
+
     // 2. Tự động cập nhật dữ liệu bảng TV bằng AJAX Polling (chu kỳ 3 giây)
-    let lastCalledId = null;
+    const lastRoomPatients = {};
+    let isFirstLoad = true;
 
     function updateLobbyData() {
         fetch('/Queue/GetLobbyData')
@@ -135,6 +153,20 @@
                 rooms.forEach(room => {
                     const current = room.currentPatient;
                     const waiting = room.waitingQueue || [];
+
+                    // Kiểm tra nếu phòng có bệnh nhân mới vừa được gọi vào khám
+                    const currentId = current ? current.appointmentId : null;
+                    if (!isFirstLoad && current && lastRoomPatients[room.roomId] !== currentId) {
+                        document.getElementById('callQueueNum').innerText = `#${current.queueNumber}`;
+                        document.getElementById('callPatientText').innerText = `Xin mời: ${current.patientName}`;
+                        document.getElementById('callRoomText').innerText = `Mời vào Phòng ${room.roomNumber} (${room.departmentName})`;
+                        document.getElementById('callBanner').style.display = 'block';
+
+                        const audio = document.getElementById('chimeSound');
+                        audio.currentTime = 0;
+                        audio.play().catch(() => {});
+                    }
+                    lastRoomPatients[room.roomId] = currentId;
 
                     let currentHtml = '';
                     if (current) {
@@ -183,12 +215,14 @@
                         </div>`;
                 });
 
+                isFirstLoad = false;
                 container.innerHTML = html;
             })
             .catch(err => console.debug("Lỗi cập nhật bảng TV:", err));
     }
 
-    // Tự động tải lại sau mỗi 3 giây
+    // Gọi lần đầu để lưu trạng thái hiện tại, sau đó cứ 3 giây cập nhật lại
+    updateLobbyData();
     setInterval(updateLobbyData, 3000);
 </script>
 }

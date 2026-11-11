@@ -142,8 +142,14 @@ namespace Services
             TimeSlot? slot = null;
             if (isEmergency)
             {
-                var nowTime = DateTime.Now.TimeOfDay;
-                slot = await _appointmentRepo.CreateEmergencySlotAsync(schedule.Id, nowTime, nowTime.Add(TimeSpan.FromMinutes(20)));
+                var now = DateTime.Now;
+                var startTime = new TimeSpan(now.Hour, now.Minute, 0);
+                var endTime = startTime.Add(TimeSpan.FromMinutes(20));
+                if (endTime >= TimeSpan.FromHours(24))
+                {
+                    endTime = new TimeSpan(23, 59, 0);
+                }
+                slot = await _appointmentRepo.CreateEmergencySlotAsync(schedule.Id, startTime, endTime);
             }
             else
             {

@@ -10,7 +10,7 @@
                 <span class="badge bg-warning text-dark fw-bold px-3 py-2 mb-3">Hệ Thống Quản Lý Tiếp Đón & Khám Bệnh Ngoại Trú</span>
                 <h1 class="display-5 fw-bold mb-3">Chào Mừng Đến Với OCMS Clinic</h1>
                 <p class="lead mb-4 opacity-90">
-                    Phần mềm quản lý phòng khám hiện đại: Quét tải ảnh QR vé khám &lt; 5s, đo chỉ số sinh hiệu Triage (BP, Pulse, SpO2), điều phối hàng đợi Real-time qua SignalR và bảng TV gọi số tự động.
+                    Phần mềm quản lý phòng khám hiện đại: Quét tải ảnh QR vé khám &lt; 5s, đo chỉ số sinh hiệu Triage (BP, Pulse, SpO2), cập nhật hàng đợi tự động và bảng TV gọi số sảnh chờ.
                 </p>
                 <div class="d-flex flex-wrap gap-2">
                     <a asp-controller="Reception" asp-action="CheckIn" class="btn btn-light btn-lg text-primary fw-bold px-4 shadow-sm">
@@ -56,7 +56,7 @@
                     </div>
                     <h5 class="fw-bold text-dark">2. TV Sảnh Chờ & Gọi Bệnh Nhân</h5>
                     <p class="text-muted small flex-grow-1">
-                        Màn hình TV sảnh cập nhật số khám và số phòng theo thời gian thực (SignalR), phát chuông Ting-Tong tự động và thông báo giọng đọc khi nhân viên/bác sĩ gọi số.
+                        Màn hình TV sảnh tự động cập nhật số khám và số phòng liên tục, phát chuông báo hiệu khi nhân viên hoặc bác sĩ bấm gọi bệnh nhân vào khám.
                     </p>
                     <div class="d-flex gap-2 mt-2">
                         <a asp-controller="Queue" asp-action="Display" target="_blank" class="btn btn-success fw-semibold flex-fill">
