@@ -19,7 +19,7 @@
                             <span class="input-group-text bg-white"><i class="fa-solid fa-stethoscope text-primary"></i></span>
                             <select name="specialtyId" class="form-select" required>
                                 <option value="" selected disabled>Select Specialty...</option>
-                                @if (Model.Specialties != null && Model.Specialties.Any())
+                                @if (Model.Specialties != null && Model.Specialties.Count() > 0)
                                 {
                                     foreach (var dept in Model.Specialties)
                                     {
@@ -33,7 +33,7 @@
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="fa-regular fa-calendar text-primary"></i></span>
-                            <input type="date" name="targetDate" class="form-control" required min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <input type="date" name="targetDate" class="form-control" required />
                         </div>
                     </div>
 
@@ -56,18 +56,18 @@
     </div>
 
     <div class="row g-4">
-        @if (Model.FeaturedDoctors != null && Model.FeaturedDoctors.Any())
+        @if (Model.FeaturedDoctors != null && Model.FeaturedDoctors.Count() > 0)
         {
             foreach (var doc in Model.FeaturedDoctors)
             {
                 <div class="col-md-6 col-lg-3">
                     <div class="card h-100 shadow-sm border-0 text-center pt-4">
-                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(doc.User?.FullName ?? "Dr")&background=0D8ABC&color=fff&size=128"
-                             class="rounded-circle mx-auto mb-3" alt="@doc.User?.FullName" width="120" height="120" style="object-fit: cover;">
+                        <img src="/images/doctor-default.png"
+                             class="rounded-circle mx-auto mb-3" alt="Doctor Avatar" width="120" height="120" style="object-fit: cover;">
 
                         <div class="card-body">
-                            <h5 class="card-title fw-bold mb-1">@doc.AcademicTitle @doc.User?.FullName</h5>
-                            <p class="text-primary mb-2"><i class="fa-solid fa-briefcase-medical me-1"></i> @doc.Department?.Name</p>
+                            <h5 class="card-title fw-bold mb-1">@doc.AcademicTitle @doc.User.FullName</h5>
+                            <p class="text-primary mb-2"><i class="fa-solid fa-briefcase-medical me-1"></i> @doc.Department.Name</p>
                             <p class="text-muted small fw-bold">Fee: @doc.PricePerSlot.ToString("N0") VNĐ / Slot</p>
                         </div>
 
