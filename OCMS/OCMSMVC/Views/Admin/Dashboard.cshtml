@@ -1,7 +1,6 @@
 ﻿@model OCMSMVC.Models.AdminDashboardViewModel
 
 @{
-    // Sử dụng ViewData để set Title (Chuẩn Slide 53 - Chapter 04)
     ViewData["Title"] = "Admin Analytics Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -9,7 +8,6 @@
 <h1>Quản trị hệ thống (Admin Dashboard)</h1>
 <hr />
 
-<!-- 1. Dữ liệu tổng quan: Dùng danh sách cơ bản -->
 <h3>1. Thống kê Tổng quan</h3>
 <ul style="font-size: 1.2rem; line-height: 2;">
     <li><strong>Tổng Doanh Thu:</strong> @Model.TotalRevenue.ToString("N0") VNĐ</li>
@@ -20,7 +18,6 @@
 
 <br />
 
-<!-- 2. Biểu diễn Dictionary bằng Table và Foreach (Chuẩn Slide 70 - Chapter 04) -->
 <h3>2. Doanh thu theo tháng (Năm nay)</h3>
 <table class="table table-striped table-bordered">
     <thead class="table-dark">
@@ -33,7 +30,6 @@
         @foreach (var item in Model.RevenueByMonth)
         {
             <tr>
-                <!-- Dictionary sinh ra KeyValuePair, truy xuất bằng .Key và .Value -->
                 <td>@item.Key</td>
                 <td>@item.Value.ToString("N0")</td>
             </tr>
@@ -43,7 +39,6 @@
 
 <br />
 
-<!-- 3. Biểu diễn Lượt khám theo chuyên khoa bằng Table -->
 <h3>3. Phân bổ lượt khám theo Chuyên khoa</h3>
 <table class="table table-striped table-bordered">
     <thead class="table-dark">
