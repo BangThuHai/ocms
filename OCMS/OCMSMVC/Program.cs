@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
 using Services;
+using OCMSMVC.Workers;
 
 namespace OCMSMVC
 {
@@ -14,8 +15,7 @@ namespace OCMSMVC
 
             // 1. Đăng ký Controllers & Views
             builder.Services.AddControllersWithViews();
-
-            // 2. Cấu hình DbContext kết nối SQL Server
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddDbContext<OcmsDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -24,25 +24,30 @@ namespace OCMSMVC
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             builder.Services.AddScoped<IReceptionService, ReceptionService>();
+            builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+            builder.Services.AddScoped<IDoctorService, DoctorService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
+            // Đăng ký các dịch vụ Worker
+            builder.Services.AddHostedService<SlotExpiryWorker>();
+            builder.Services.AddHostedService<DailyReminderWorker>();
+
+            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+            builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
+            builder.Services.AddScoped<ICapacityEngine, CapacityEngine>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 
             //cấu hình sesion 
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.LoginPath = "/Account/Login";
-                    options.AccessDeniedPath = "/Account/AccessDenied";
-                    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                });
-
-            // 4. Cấu hình Session & Cache
             builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(60);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
+            builder.Services.AddSession(options => 
+            { 
+                 options.IdleTimeout = TimeSpan.FromMinutes(60);
+                 options.Cookie.HttpOnly = true;    // Đảm bảo cookie session chỉ có thể truy cập thông qua HTTP và không thể truy cập từ JavaScript
+                options.Cookie.IsEssential = true; // Đảm bảo cookie session được gửi ngay cả khi người dùng chưa đăng nhập
             });
 
             var app = builder.Build();
