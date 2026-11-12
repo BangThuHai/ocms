@@ -13,19 +13,21 @@ namespace OCMSMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // 1. Đăng ký Controllers & Views
             builder.Services.AddControllersWithViews();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddDbContext<OcmsDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-            //Đăng ký Dependencies cho các Repository và Service
+            // 3. Đăng ký Dependency Injection (Repository & Service)
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            builder.Services.AddScoped<IReceptionService, ReceptionService>();
             builder.Services.AddScoped<IDepartmentService, DepartmentService>();
             builder.Services.AddScoped<IDoctorService, DoctorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
             builder.Services.AddScoped<IClinicWorkflowRepository, ClinicWorkflowRepository>();
             builder.Services.AddScoped<IClinicWorkflowService, ClinicWorkflowService>();
@@ -53,11 +55,9 @@ namespace OCMSMVC
                 options.Cookie.IsEssential = true; // Đảm bảo cookie session được gửi ngay cả khi người dùng chưa đăng nhập
             });
 
-
-
             var app = builder.Build();
 
-            // Seed the database with initial data
+            // 5. Seed dữ liệu mẫu khi khởi động ứng dụng
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -73,7 +73,7 @@ namespace OCMSMVC
                 }
             }
 
-            // Configure the HTTP request pipeline.
+            // 6. Cấu hình HTTP request pipeline
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -100,7 +100,6 @@ namespace OCMSMVC
                 await next();
             });
             app.UseAuthentication();
-
             app.UseAuthorization();
 
             app.MapControllerRoute(
