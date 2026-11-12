@@ -26,6 +26,7 @@ namespace OCMSMVC
             builder.Services.AddScoped<IDepartmentService, DepartmentService>();
             builder.Services.AddScoped<IDoctorService, DoctorService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
             // Đăng ký các dịch vụ Worker
             builder.Services.AddHostedService<SlotExpiryWorker>();
